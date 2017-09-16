@@ -46,18 +46,18 @@ int main() {
         }
     });
 
-    h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+    h.onConnection([&h](uWS::WebSocket<uWS::SERVER> *ws, uWS::HttpRequest req) {
         // send this client all stored messages in one batch send
         uWS::WebSocket<uWS::SERVER>::PreparedMessage *preparedMessageBatch = uWS::WebSocket<uWS::SERVER>::prepareMessageBatch(storedMessages, excludedMessages, uWS::TEXT, false);
-        ws.sendPrepared(preparedMessageBatch);
-        ws.finalizeMessage(preparedMessageBatch);
+        ws->sendPrepared(preparedMessageBatch);
+        ws->finalizeMessage(preparedMessageBatch);
 
         // broadcast number of clients connected to everyone
         std::string tmp = "S " + std::to_string(++connections) + " " +  std::to_string(getKb());
         h.getDefaultGroup<uWS::SERVER>().broadcast(tmp.data(), tmp.length(), uWS::TEXT);
     });
 
-    h.onMessage([&h](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+    h.onMessage([&h](uWS::WebSocket<uWS::SERVER> *ws, char *data, size_t length, uWS::OpCode opCode) {
         if (length && data[0] != 'S' && length < 4096) {
             // add this message to the store, cut off old messages
             if (storedMessages.size() == 50) {
@@ -71,7 +71,7 @@ int main() {
         }
     });
 
-    h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
+    h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> *ws, int code, char *message, size_t length) {
         // broadcast number of clients connected to everyone
         std::string tmp = "S " + std::to_string(--connections) + " " +  std::to_string(getKb());
         h.getDefaultGroup<uWS::SERVER>().broadcast(tmp.data(), tmp.length(), uWS::TEXT);
